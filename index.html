@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17183b">
+  <meta name="description" content="Club Avolta field activity report for the Switzerland team.">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <!-- Add a secure same-origin API URL here when the database endpoint is ready. -->
+  <meta name="club-avolta-api" content="/api/club-avolta">
+  <title>Club Avolta · Field Report</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17183b;
+      --muted: #6d6e82;
+      --line: #e7e5ee;
+      --paper: #ffffff;
+      --canvas: #f7f5f2;
+      --violet: #6d5dfc;
+      --violet-dark: #5848e8;
+      --violet-soft: #eeebff;
+      --coral: #ff6f61;
+      --mint: #cef3e4;
+      --danger: #b42318;
+      --shadow: 0 18px 60px rgba(27, 24, 64, .09);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background:
+        radial-gradient(circle at 10% -10%, rgba(109, 93, 252, .12), transparent 31rem),
+        radial-gradient(circle at 100% 15%, rgba(255, 111, 97, .12), transparent 27rem),
+        var(--canvas);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { color: inherit; }
+    :focus-visible { outline: 3px solid rgba(109, 93, 252, .28); outline-offset: 2px; }
+
+    .shell { width: min(860px, calc(100% - 32px)); margin: 0 auto; }
+    .form-page { padding: 28px 0 64px; }
+
+    .form-card { overflow: hidden; width: 100%; border: 1px solid rgba(222, 219, 231, .92); border-radius: 30px; background: var(--paper); box-shadow: var(--shadow); }
+    .card-head { padding: 30px 34px 25px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; }
+    .card-head h2 { margin: 0 0 5px; font-size: 26px; letter-spacing: -.035em; }
+    .card-head p { margin: 0; color: var(--muted); font-size: 14px; }
+    .draft-note { white-space: nowrap; color: #7b7890; font-size: 12px; font-weight: 700; }
+
+    form { display: block; }
+    .section { padding: 30px 34px; border-bottom: 1px solid var(--line); }
+    .section:last-of-type { border-bottom: 0; }
+    .section-title { display: flex; align-items: flex-start; gap: 13px; margin-bottom: 22px; }
+    .section-number { flex: 0 0 auto; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 10px; color: var(--violet); background: var(--violet-soft); font-size: 13px; font-weight: 850; }
+    .section-title h3 { margin: 0; font-size: 17px; letter-spacing: -.02em; }
+    .section-title p { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .field { min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    label, legend { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 800; }
+    .required::after { content: " · required"; color: var(--coral); font-weight: 700; }
+    input[type="date"], input[type="number"], select, textarea, .multi-trigger {
+      width: 100%; min-height: 48px; border: 1px solid #dcd9e5; border-radius: 14px;
+      background: #fbfafc; color: var(--ink); padding: 11px 13px; transition: .18s ease;
+    }
+    input:hover, select:hover, textarea:hover, .multi-trigger:hover { border-color: #beb8d2; }
+    input:focus, select:focus, textarea:focus { border-color: var(--violet); background: white; box-shadow: 0 0 0 4px rgba(109,93,252,.09); outline: 0; }
+    textarea { min-height: 100px; resize: vertical; }
+    .hint { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+    .range-card { padding: 16px 18px; border: 1px solid #e4e1ea; border-radius: 17px; background: #fbfafc; }
+    .range-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .range-head label { margin: 0; }
+    .range-value { min-width: 48px; padding: 5px 9px; border-radius: 999px; color: var(--violet); background: var(--violet-soft); text-align: center; font-size: 13px; font-weight: 850; }
+    input[type="range"] { width: 100%; accent-color: var(--violet); cursor: pointer; }
+    .range-scale { display: flex; justify-content: space-between; margin-top: 7px; color: var(--muted); font-size: 11px; font-weight: 700; }
+    .search-wrap { position: relative; }
+    .search-wrap input { width: 100%; min-height: 48px; border: 1px solid #dcd9e5; border-radius: 14px; background: #fbfafc; color: var(--ink); padding: 11px 13px; }
+
+    fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+    .store-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .store-option input, .choice input, .density input { position: absolute; opacity: 0; pointer-events: none; }
+    .store-option label {
+      height: 100%; min-height: 76px; margin: 0; padding: 12px;
+      display: flex; flex-direction: column; justify-content: center;
+      border: 1px solid #ddd9e6; border-radius: 16px; background: #fbfafc; cursor: pointer; transition: .18s ease;
+    }
+    .store-option strong { font-size: 14px; }
+    .store-option small { margin-top: 3px; color: var(--muted); font-weight: 600; }
+    .store-option input:checked + label { border-color: var(--violet); background: var(--violet-soft); box-shadow: inset 0 0 0 1px var(--violet); }
+
+    .choice-row { display: flex; flex-wrap: wrap; gap: 9px; }
+    .choice label { margin: 0; padding: 10px 14px; border: 1px solid #ddd9e6; border-radius: 999px; background: #fbfafc; cursor: pointer; transition: .18s ease; }
+    .choice input:checked + label { color: white; border-color: var(--violet); background: var(--violet); }
+
+    .multi { position: relative; }
+    .multi-trigger { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; text-align: left; }
+    .multi-trigger .placeholder { color: #838192; }
+    .multi-trigger .value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chevron { flex: 0 0 auto; transition: transform .18s ease; }
+    .multi.open .chevron { transform: rotate(180deg); }
+    .multi-panel {
+      position: absolute; z-index: 20; top: calc(100% + 7px); left: 0; right: 0;
+      display: none; overflow: hidden; border: 1px solid #ddd9e6; border-radius: 16px; background: white; box-shadow: 0 18px 44px rgba(24,21,57,.16);
+    }
+    .multi.open .multi-panel { display: block; }
+    .multi-search { width: calc(100% - 20px); min-height: 40px; margin: 10px; padding: 9px 11px; border: 1px solid #e0ddea; border-radius: 11px; }
+    .multi-options { max-height: 228px; overflow: auto; padding: 0 8px 8px; }
+    .multi-option { display: flex; align-items: center; gap: 10px; margin: 0; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 14px; }
+    .multi-option:hover { background: #f4f1ff; }
+    .multi-option input { width: 17px; height: 17px; accent-color: var(--violet); }
+
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 11px; }
+    .metric { padding: 13px; border: 1px solid #e4e1ea; border-radius: 17px; background: #fbfafc; }
+    .metric label { min-height: 37px; margin-bottom: 8px; color: #535269; line-height: 1.25; }
+    .counter { display: grid; grid-template-columns: 34px 1fr 34px; align-items: center; gap: 5px; }
+    .counter button { width: 34px; height: 34px; border: 0; border-radius: 10px; background: white; box-shadow: inset 0 0 0 1px #ddd9e6; cursor: pointer; font-size: 19px; }
+    .counter button:hover { color: var(--violet); box-shadow: inset 0 0 0 1px var(--violet); }
+    .counter input { min-width: 0; width: 100%; height: 34px; border: 0; background: transparent; text-align: center; font-weight: 850; appearance: textfield; }
+    .counter input::-webkit-inner-spin-button { appearance: none; }
+
+    .density-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .density label { margin: 0; padding: 10px 4px; border: 1px solid #ddd9e6; border-radius: 13px; background: #fbfafc; cursor: pointer; text-align: center; font-size: 12px; }
+    .density label strong { display: block; margin-bottom: 2px; font-size: 16px; }
+    .density input:checked + label { color: white; border-color: var(--ink); background: var(--ink); }
+
+    .actions { position: sticky; bottom: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 20px 34px calc(20px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: rgba(255,255,255,.93); backdrop-filter: blur(14px); }
+    .button { min-height: 48px; border: 0; border-radius: 14px; padding: 0 18px; cursor: pointer; font-weight: 850; transition: transform .15s ease, background .15s ease; }
+    .button:active { transform: translateY(1px); }
+    .button-primary { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-width: 190px; color: white; background: var(--violet); box-shadow: 0 10px 24px rgba(109,93,252,.24); }
+    .button-primary:hover { background: var(--violet-dark); }
+    .button-primary:disabled { cursor: wait; opacity: .66; }
+    .button-quiet { color: var(--muted); background: transparent; }
+    .button-quiet:hover { color: var(--ink); background: #f3f1f6; }
+    .save-state { color: var(--muted); font-size: 12px; font-weight: 700; }
+
+    .toast { position: fixed; z-index: 80; right: 20px; bottom: 20px; width: min(390px, calc(100% - 40px)); padding: 16px 18px; border-radius: 16px; color: white; background: var(--ink); box-shadow: 0 18px 50px rgba(23,24,59,.25); transform: translateY(150%); opacity: 0; transition: .28s ease; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast strong { display: block; margin-bottom: 2px; }
+    .toast span { color: #d9d8e6; font-size: 13px; }
+    .error { margin: 0 34px 18px; padding: 12px 14px; border-radius: 12px; color: var(--danger); background: #fff0ee; font-size: 13px; font-weight: 700; }
+    [hidden] { display: none !important; }
+
+    @media (max-width: 640px) {
+      .shell { width: min(100% - 20px, 860px); }
+      .form-page { padding: 10px 0 30px; }
+      .form-card { border-radius: 22px; }
+      .card-head, .section { padding: 23px 19px; }
+      .card-head { display: block; }
+      .draft-note { display: inline-block; margin-top: 9px; }
+      .grid { grid-template-columns: 1fr; gap: 16px; }
+      .field.full { grid-column: auto; }
+      .store-grid { grid-template-columns: 1fr; }
+      .store-option label { min-height: 62px; }
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+      .density-row { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
+      .density label { font-size: 10px; }
+      .actions { padding: 14px 19px calc(14px + env(safe-area-inset-bottom)); }
+      .save-state { display: none; }
+      .button-primary { flex: 1; }
+      .error { margin: 0 19px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell form-page">
+    <article class="form-card">
+      <form id="reportForm" novalidate>
+        <div class="card-head">
+          <div><h2>Daily activity</h2><p>Complete the report at the end of your shift.</p></div>
+          <span class="draft-note" id="draftNote">Draft autosave on</span>
+        </div>
+        <section class="section">
+          <div class="section-title"><span class="section-number">01</span><div><h3>Shift details</h3><p>When, where and who.</p></div></div>
+          <div class="grid">
+            <div class="field">
+              <label class="required" for="activity_date">Activity date</label>
+              <input id="activity_date" name="activity_date" type="date" required>
+            </div>
+            <div class="field">
+              <label class="required" for="promoter_search">Promoter</label>
+              <div class="search-wrap">
+                <input id="promoter_search" name="promoter_search" list="promoterList" autocomplete="off" placeholder="Search your name" required>
+                <datalist id="promoterList"></datalist>
+                <input id="promoter_id" name="promoter_id" type="hidden">
+              </div>
+              <p class="hint">Active Switzerland promoters only</p>
+            </div>
+            <fieldset class="field full">
+              <legend class="required">Store</legend>
+              <div class="store-grid" id="storeGrid"></div>
+            </fieldset>
+            <div class="field full range-card">
+              <div class="range-head"><label for="traffic_density">Traffic density</label><output class="range-value" id="trafficValue">50%</output></div>
+              <input id="traffic_density" name="traffic_density" type="range" min="0" max="100" value="50">
+              <div class="range-scale"><span>0 · Quiet</span><span>100 · Peak</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-title"><span class="section-number">02</span><div><h3>Customer profile</h3><p>Select all that apply.</p></div></div>
+          <div class="grid">
+            <fieldset class="field full">
+              <legend>Age groups</legend>
+              <div class="choice-row" id="ageGroups"></div>
+            </fieldset>
+            <div class="field full range-card">
+              <div class="range-head"><label for="male_customers">Customer gender average</label><output class="range-value" id="genderValue">50%</output></div>
+              <input id="male_customers" name="male_customers" type="range" min="0" max="100" value="50">
+              <div class="range-scale"><span>0 · Male</span><span>50 · Balanced</span><span>100 · Female</span></div>
+            </div>
+            <div class="field">
+              <label>Destinations</label>
+              <div class="multi" data-field="destinations"></div>
+            </div>
+            <div class="field">
+              <label>Nationalities</label>
+              <div class="multi" data-field="nationalities"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-title"><span class="section-number">03</span><div><h3>Results</h3><p>Enter the shift totals.</p></div></div>
+          <div class="metrics" id="metrics"></div>
+          <p class="hint" style="margin-top:14px">Registration denials are calculated automatically: stopped − new memberships − already members. Technical issues are included within denials.</p>
+        </section>
+
+        <section class="section">
+          <div class="section-title"><span class="section-number">04</span><div><h3>Notes</h3><p>Add context that helps the team improve.</p></div></div>
+          <div class="grid">
+            <div class="field"><label for="reasons_denial">Reasons for registration denial</label><textarea id="reasons_denial" name="reasons_denial" maxlength="2000" placeholder="What stopped customers from registering?"></textarea></div>
+            <div class="field"><label for="reasons_registration">Reasons for registration</label><textarea id="reasons_registration" name="reasons_registration" maxlength="2000" placeholder="What convinced customers to register?"></textarea></div>
+            <div class="field"><label for="comments_about_app">Comments about the app</label><textarea id="comments_about_app" name="comments_about_app" maxlength="2000" placeholder="Feedback, questions or usability comments"></textarea></div>
+            <div class="field"><label for="other_issues">Other issues</label><textarea id="other_issues" name="other_issues" maxlength="2000" placeholder="Anything else the team should know?"></textarea></div>
+          </div>
+        </section>
+
+        <p class="error" id="formError" role="alert" hidden></p>
+        <div class="actions">
+          <button class="button button-quiet" id="clearButton" type="button">Clear</button>
+          <span class="save-state">Required: date, promoter and store</span>
+          <button class="button button-primary" id="submitButton" type="submit">
+            <span>Submit report</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8 5 8 7-8 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </form>
+    </article>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"><strong id="toastTitle"></strong><span id="toastText"></span></div>
+
+  <script>
+    const STORES = [
+      { code: "BSL", id: 48, label: "Basel", detail: "BSL · Store 48" },
+      { code: "ZRHL1", id: 32465, label: "GVA Arrivals", detail: "ZRHL1" },
+      { code: "ZRHL2", id: 32466, label: "GVA Departures", detail: "ZRHL2" }
+    ];
+    const AGE_GROUPS = ["18-25", "26-35", "36-45", "46-55", "56+"];
+    const COUNTRIES = [
+      {id:31,name:"Not Known"},{id:3,name:"Switzerland"},{id:1,name:"France"},{id:4,name:"UK"},{id:5,name:"Germany"},
+      {id:6,name:"Spain"},{id:7,name:"Portugal"},{id:8,name:"Italy"},{id:9,name:"Northern Eur"},{id:11,name:"NorthAm"},
+      {id:12,name:"SouthAm"},{id:13,name:"Maghreb"},{id:14,name:"Africa"},{id:15,name:"UAE"},{id:16,name:"China"},
+      {id:17,name:"Japan"},{id:18,name:"India"},{id:23,name:"Asia"},{id:25,name:"Eastern Eur"},{id:26,name:"Greece"},
+      {id:27,name:"Belgium"},{id:28,name:"Luxembourg"},{id:29,name:"Türkiye"},{id:30,name:"Middle East"},{id:10,name:"Russia"}
+    ];
+    const PROMOTERS = [
+      [28025,"Adamaris SCHRODER"],[20964,"Agnes Debora SAUTER"],[29026,"Alejandro KICELEFF"],[20259,"Alexis BEAUMONT"],[18379,"Alma PETRAUSKAITE"],[33396,"Altina SHABANI"],[69,"Andrea BURGER"],[24270,"Andrés Oscar Michel BONDOUX"],[28858,"Anissa BOUARIOUA"],[24807,"Anthony PINTHUS"],[29181,"Antonio SULJIC"],[18700,"Arfa REHMAN"],[31101,"Benja TANSATHIEN"],[20416,"Carina WEINGAND"],[11034,"Carolina BAUMGARTNER"],[26125,"Celine MARIANI"],[13033,"Chang GUO"],[18587,"Cherrywan KOSTIC"],[28975,"Cheska ASCANI"],[28031,"Chiara Elena ALBERTELLA"],[25790,"Damian Mateusz BRONZEL"],[19849,"Danica JURIC"],[17804,"Deborah LOWA"],[20762,"Ereza BEQIRAJ"],[20763,"Esaynesh NEGA MAST"],[15386,"Evangeline SIEGLE-CHEW"],[32278,"Evangelos BGIALAS"],[23898,"Federick VELU"],[20502,"Feng THOMA"],[26695,"Gent VELIJA"],[28448,"Georgina DELGADO"],[28912,"Gianpaulo DI MARTINO"],[29103,"Giovanni SOARES"],[24414,"Gregory Gary BOAST"],[28864,"Hira REHMAN"],[22244,"Hui SHI"],[14434,"Ines SAHKI"],[29010,"Ioanna TSILIANOU"],[29094,"Jahtee MEIER"],[22958,"Janete SUCUMA"],[25501,"Jaqueline LIMA DA VISITACAO"],[16340,"Jasmine PFAFF"],[22292,"Jennifer SULCIS-DAVID"],[8729,"Johanna KOK"],[13543,"Joyce HÜBNER"],[25325,"Kevin IDIKA UDUMA"],[33346,"Krish BASRA"],[22293,"Kyriaki GKIALPI"],[23075,"Lavinia LEPADATU"],[24065,"Lucas DE LEMOS SANTOS"],[25279,"Lucy FIUZA"],[26850,"Luka Florine OVERMARS"],[11341,"Marcha WONG"],[29653,"Mohamed MERZOUK MOUFID"],[8491,"Monica KARIMI"],[24857,"Naruemon HAPUTHON"],[18390,"Neha BAID"],[25013,"Nicolas MAST"],[32360,"Nikolai BECKER"],[25805,"Nina PAVLU"],[19482,"Olamide ABIDAKUN"],[4472,"Patricia GABOURG"],[19019,"Pawarit HOEHN"],[18477,"Paz VOGEL"],[26635,"Pedram JAVANMARDI"],[76,"Portia ROSSI"],[18244,"Rana ALMOTAIRI-WYSS"],[11343,"Rapeeporn SCHNARWILER"],[28139,"Raphael MENEZES"],[19575,"Rosni DOLLAH OESCHGER"],[26577,"Samuel MARGONATO"],[32390,"Sandra TEIXEIRA MAGRO"],[14415,"Sangita HOTHI"],[28732,"Sarah SCHAPPO"],[24264,"Selly Novianti MEIER"],[11484,"Sherryl HÄMMERLI"],[31137,"Sofia CHAUNY SCHIRMER"],[22249,"Song Yun ONG"],[18818,"Stéphane ANTOINE"],[24929,"Supawich KHUMMEE"],[23244,"Tsedal TSADIK HABTU"],[20105,"Valentyn APETRI"],[25675,"Veronika HALANTSEVA"],[19876,"Victoria LIMA NOGUERIA"],[24928,"Wariwan WONGRATCHATASAVEE"],[22575,"Yelyzaveta BACHKALA"],[24400,"Yuzan Ilario FLURY"]
+    ].map(([id,name]) => ({id,name}));
+    const METRICS = [
+      ["interactions","Interactions"],["pax_stopped","Pax stopped"],["registrations","New memberships"],
+      ["already_members","Already members"],["technical_issues","Technical issues"],["app_downloads","App downloads"],
+      ["registration_denials","Registration denials",true]
+    ];
+    const DRAFT_KEY = "clubAvoltaDraftV1";
+    const OUTBOX_KEY = "clubAvoltaOutboxV1";
+    const form = document.getElementById("reportForm");
+    const promoterSearch = document.getElementById("promoter_search");
+    const promoterIdInput = document.getElementById("promoter_id");
+    const isLocalPreview = location.protocol === "file:" || ["127.0.0.1","localhost"].includes(location.hostname);
+    const apiEndpoint = isLocalPreview ? "" : document.querySelector('meta[name="club-avolta-api"]').content.trim();
+
+    function todayLocal() {
+      const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+      return d.toISOString().slice(0,10);
+    }
+    function esc(value) { return String(value).replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c])); }
+    function showToast(title, text) {
+      document.getElementById("toastTitle").textContent = title;
+      document.getElementById("toastText").textContent = text;
+      const toast = document.getElementById("toast"); toast.classList.add("show");
+      clearTimeout(showToast.timer); showToast.timer = setTimeout(() => toast.classList.remove("show"), 4200);
+    }
+    function updateOutboxCount() {
+      const count = JSON.parse(localStorage.getItem(OUTBOX_KEY) || "[]").length;
+      const indicator = document.getElementById("outboxCount");
+      if (indicator) indicator.textContent = count ? `${count} saved locally` : "Ready";
+    }
+
+    document.getElementById("storeGrid").innerHTML = STORES.map((s,i) => `
+      <div class="store-option"><input type="radio" id="store_${esc(s.code)}" name="store_code" value="${esc(s.code)}" ${i===0?'required':''}><label for="store_${esc(s.code)}"><strong>${esc(s.label)}</strong><small>${esc(s.detail)}</small></label></div>
+    `).join("");
+    document.getElementById("ageGroups").innerHTML = AGE_GROUPS.map((age,i) => `
+      <span class="choice"><input type="checkbox" id="age_${i}" name="age_groups" value="${esc(age)}"><label for="age_${i}">${esc(age)}</label></span>
+    `).join("");
+    let promoterOptions = PROMOTERS;
+    function renderPromoters() {
+      document.getElementById("promoterList").innerHTML = promoterOptions.map(p => `<option value="${esc(p.name)}"></option>`).join("");
+      syncPromoter();
+    }
+    function syncPromoter() {
+      const typed = promoterSearch.value.trim().toLocaleLowerCase();
+      const match = promoterOptions.find(p => p.name.trim().toLocaleLowerCase() === typed);
+      promoterIdInput.value = match ? String(match.id) : "";
+      promoterSearch.setCustomValidity(!typed || match ? "" : "Choose a promoter from the Switzerland list.");
+    }
+    promoterSearch.addEventListener("input", syncPromoter);
+    renderPromoters();
+    document.getElementById("metrics").innerHTML = METRICS.map(([key,label,readonly]) => `
+      <div class="metric"><label for="${key}">${esc(label)}</label><input id="${key}" name="${key}" type="number" min="0" max="99999" step="1" value="0" inputmode="numeric" ${readonly ? 'readonly aria-readonly="true"' : ''}><p class="hint metric-rule" data-for="${key}">${readonly ? 'Calculated automatically' : 'Enter a whole number'}</p></div>
+    `).join("");
+
+    function clampInput(input, max) {
+      input.max = String(Math.max(0, max));
+      if (Number(input.value || 0) > max) input.value = String(Math.max(0, max));
+    }
+    function syncResultRules() {
+      const interactions = Math.max(0, Number(form.interactions.value || 0));
+      clampInput(form.pax_stopped, interactions);
+      const stopped = Math.max(0, Number(form.pax_stopped.value || 0));
+      clampInput(form.registrations, stopped);
+      const registrations = Math.max(0, Number(form.registrations.value || 0));
+      clampInput(form.already_members, stopped - registrations);
+      const already = Math.max(0, Number(form.already_members.value || 0));
+      const denials = Math.max(0, stopped - registrations - already);
+      clampInput(form.technical_issues, denials);
+      clampInput(form.app_downloads, registrations);
+      form.registration_denials.value = String(denials);
+      const rules = {
+        pax_stopped:`Maximum ${interactions} interactions`,
+        registrations:`Maximum ${stopped} stopped customers`,
+        already_members:`Maximum ${Math.max(0, stopped - registrations)} remaining stopped customers`,
+        technical_issues:`Maximum ${denials} registration denials`,
+        app_downloads:`Maximum ${registrations} new memberships`
+      };
+      Object.entries(rules).forEach(([key,value]) => {
+        const hint = document.querySelector(`.metric-rule[data-for="${key}"]`); if (hint) hint.textContent = value;
+      });
+    }
+    ["interactions","pax_stopped","registrations","already_members","technical_issues","app_downloads"].forEach(key => form.elements[key].addEventListener("input", syncResultRules));
+    syncResultRules();
+
+    function syncSliders() {
+      document.getElementById("trafficValue").textContent = `${form.traffic_density.value}%`;
+      document.getElementById("genderValue").textContent = `${form.male_customers.value}%`;
+    }
+    form.traffic_density.addEventListener("input", syncSliders);
+    form.male_customers.addEventListener("input", syncSliders);
+    syncSliders();
+
+    async function loadBootstrap() {
+      if (!apiEndpoint) return;
+      try {
+        const response = await fetch(apiEndpoint, {headers:{"Accept":"application/json"}});
+        if (!response.ok) throw new Error(`Promoter list unavailable (${response.status})`);
+        const data = await response.json();
+        if (Array.isArray(data.promoters) && data.promoters.length) {
+          promoterOptions = data.promoters.map(p => ({id:Number(p.id), name:String(p.name)}));
+          renderPromoters();
+        }
+      } catch (error) {
+        showToast("Using the saved promoter list", "The live Switzerland list could not be loaded.");
+      }
+    }
+
+    function renderMulti(root) {
+      const field = root.dataset.field;
+      root.innerHTML = `<button class="multi-trigger" type="button" aria-expanded="false"><span class="placeholder">Select one or more</span><span class="chevron">⌄</span></button><div class="multi-panel"><input class="multi-search" type="search" placeholder="Search…" aria-label="Search options"><div class="multi-options"></div></div>`;
+      const options = root.querySelector(".multi-options");
+      options.innerHTML = COUNTRIES.map(item => `<label class="multi-option" data-name="${esc(item.name.toLowerCase())}"><input type="checkbox" name="${field}" value="${item.id}" data-label="${esc(item.name)}"><span>${esc(item.name)}</span></label>`).join("");
+      const trigger = root.querySelector(".multi-trigger");
+      trigger.addEventListener("click", () => {
+        document.querySelectorAll(".multi.open").forEach(x => { if (x !== root) x.classList.remove("open"); });
+        root.classList.toggle("open"); trigger.setAttribute("aria-expanded", root.classList.contains("open"));
+        if (root.classList.contains("open")) root.querySelector(".multi-search").focus();
+      });
+      root.querySelector(".multi-search").addEventListener("input", e => {
+        const q = e.target.value.trim().toLowerCase();
+        root.querySelectorAll(".multi-option").forEach(o => o.hidden = !o.dataset.name.includes(q));
+      });
+      options.addEventListener("change", () => { updateMulti(root); scheduleSave(); });
+      updateMulti(root);
+    }
+    function updateMulti(root) {
+      const chosen = [...root.querySelectorAll('.multi-option input:checked')].map(i => i.dataset.label);
+      const text = root.querySelector(".multi-trigger span");
+      text.className = chosen.length ? "value" : "placeholder";
+      text.textContent = chosen.length ? (chosen.length < 3 ? chosen.join(", ") : `${chosen.length} selected`) : "Select one or more";
+    }
+    document.querySelectorAll(".multi").forEach(renderMulti);
+    document.addEventListener("click", e => {
+      if (!e.target.closest(".multi")) document.querySelectorAll(".multi.open").forEach(x => x.classList.remove("open"));
+    });
+
+    function selected(name) { return [...form.querySelectorAll(`[name="${name}"]:checked`)].map(x => x.value); }
+    function buildPayload() {
+      const promoter = promoterOptions.find(p => String(p.id) === promoterIdInput.value);
+      const store = STORES.find(s => s.code === form.store_code.value);
+      const idsAndLabels = name => {
+        const inputs = [...form.querySelectorAll(`[name="${name}"]:checked`)];
+        return { ids: inputs.map(i => Number(i.value)), labels: inputs.map(i => i.dataset.label) };
+      };
+      const destinations = idsAndLabels("destinations");
+      const nationalities = idsAndLabels("nationalities");
+      const payload = {
+        source_key: `html:${crypto.randomUUID ? crypto.randomUUID() : Date.now()}`,
+        source_title: "Club Avolta Field Report",
+        activity_date: form.activity_date.value,
+        promoter_id: promoter?.id || null,
+        source_promoter: promoter?.name || "",
+        store_id: store?.id || null,
+        store_code: store?.code || "",
+        age_groups: selected("age_groups"),
+        destination_ids: destinations.ids,
+        destinations: destinations.labels,
+        nationality_ids: nationalities.ids,
+        nationalities: nationalities.labels,
+        traffic_density: Number(form.traffic_density.value),
+        male_customers: Number(form.male_customers.value),
+        reasons_denial: form.reasons_denial.value.trim(), reasons_registration: form.reasons_registration.value.trim(),
+        comments_about_app: form.comments_about_app.value.trim(), other_issues: form.other_issues.value.trim()
+      };
+      METRICS.forEach(([key]) => payload[key] = Math.max(0, Number(form.elements[key].value || 0)));
+      return payload;
+    }
+    function collectDraft() {
+      const data = {};
+      [...form.elements].forEach(el => {
+        if (!el.name) return;
+        if (el.type === "checkbox") { (data[el.name] ||= []); if (el.checked) data[el.name].push(el.value); }
+        else if (el.type === "radio") { if (el.checked) data[el.name] = el.value; }
+        else data[el.name] = el.value;
+      });
+      return data;
+    }
+    function restoreDraft() {
+      let data; try { data = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null"); } catch { data = null; }
+      if (!data) { form.activity_date.value = todayLocal(); return; }
+      [...form.elements].forEach(el => {
+        if (!el.name || data[el.name] == null) return;
+        if (el.type === "checkbox") el.checked = Array.isArray(data[el.name]) && data[el.name].includes(el.value);
+        else if (el.type === "radio") el.checked = data[el.name] === el.value;
+        else el.value = data[el.name];
+      });
+      document.querySelectorAll(".multi").forEach(updateMulti);
+      syncPromoter(); syncResultRules(); syncSliders();
+      document.getElementById("draftNote").textContent = "Draft restored";
+    }
+    function scheduleSave() {
+      clearTimeout(scheduleSave.timer);
+      scheduleSave.timer = setTimeout(() => {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(collectDraft()));
+        document.getElementById("draftNote").textContent = "Draft saved";
+      }, 250);
+    }
+    form.addEventListener("input", scheduleSave);
+    form.addEventListener("change", scheduleSave);
+
+    function clearForm(confirmFirst = true) {
+      if (confirmFirst && !confirm("Clear this report and start again?")) return;
+      form.reset(); form.activity_date.value = todayLocal();
+      METRICS.forEach(([key]) => form.elements[key].value = 0);
+      document.querySelectorAll(".multi").forEach(updateMulti);
+      syncPromoter(); syncResultRules(); syncSliders();
+      localStorage.removeItem(DRAFT_KEY);
+      document.getElementById("draftNote").textContent = "Draft autosave on";
+      document.getElementById("formError").hidden = true;
+    }
+    document.getElementById("clearButton").addEventListener("click", () => clearForm(true));
+
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
+      const error = document.getElementById("formError"); error.hidden = true;
+      syncPromoter(); syncResultRules();
+      if (!form.checkValidity()) {
+        error.textContent = "Please complete the date, promoter and store before submitting."; error.hidden = false;
+        form.reportValidity(); return;
+      }
+      const button = document.getElementById("submitButton"); button.disabled = true; button.querySelector("span").textContent = "Submitting…";
+      const payload = buildPayload();
+      try {
+        if (apiEndpoint) {
+          const response = await fetch(apiEndpoint, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)});
+          if (!response.ok) {
+            const detail = await response.json().catch(() => ({}));
+            throw new Error(detail.error || `Submission failed (${response.status})`);
+          }
+          showToast("Report submitted", "The activity has been saved to ClubAvolta.");
+        } else {
+          const outbox = JSON.parse(localStorage.getItem(OUTBOX_KEY) || "[]");
+          outbox.push({...payload, saved_at:new Date().toISOString()});
+          localStorage.setItem(OUTBOX_KEY, JSON.stringify(outbox));
+          showToast("Report saved on this device", "Connect a secure API endpoint to send saved reports to ClubAvolta.");
+          updateOutboxCount();
+        }
+        clearForm(false); window.scrollTo({top:0, behavior:"smooth"});
+      } catch (err) {
+        error.textContent = err.message || "The report could not be submitted. Your draft is still saved."; error.hidden = false;
+      } finally {
+        button.disabled = false; button.querySelector("span").textContent = "Submit report";
+      }
+    });
+
+    restoreDraft(); updateOutboxCount(); loadBootstrap();
+    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+    }
+  </script>
+</body>
+</html>
