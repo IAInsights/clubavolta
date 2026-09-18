@@ -11,7 +11,8 @@
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="manifest" href="./manifest.webmanifest">
   <!-- Add a secure same-origin API URL here when the database endpoint is ready. -->
-  <meta name="club-avolta-api" content="/api/club-avolta">
+  <meta name="club-avolta-bootstrap-api" content="/api/club-avolta/bootstrap?v=3">
+  <meta name="club-avolta-submit-api" content="/api/club-avolta/submit?v=3">
   <title>Club Avolta · Field Report</title>
   <style>
     :root {
@@ -294,7 +295,8 @@
     const promoterSearch = document.getElementById("promoter_search");
     const promoterIdInput = document.getElementById("promoter_id");
     const isLocalPreview = location.protocol === "file:" || ["127.0.0.1","localhost"].includes(location.hostname);
-    const apiEndpoint = isLocalPreview ? "" : document.querySelector('meta[name="club-avolta-api"]').content.trim();
+    const bootstrapEndpoint = isLocalPreview ? "" : new URL(document.querySelector('meta[name="club-avolta-bootstrap-api"]').content.trim(), location.origin).href;
+    const submitEndpoint = isLocalPreview ? "" : new URL(document.querySelector('meta[name="club-avolta-submit-api"]').content.trim(), location.origin).href;
 
     function todayLocal() {
       const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
@@ -375,9 +377,14 @@
     syncSliders();
 
     async function loadBootstrap() {
-      if (!apiEndpoint) return;
+      if (!bootstrapEndpoint) return;
       try {
-        const response = await fetch(apiEndpoint, {headers:{"Accept":"application/json"}});
+        const response = await fetch(bootstrapEndpoint, {
+          method:"GET",
+          headers:{"Accept":"application/json"},
+          cache:"no-store",
+          credentials:"same-origin"
+        });
         if (!response.ok) throw new Error(`Promoter list unavailable (${response.status})`);
         const data = await response.json();
         if (Array.isArray(data.promoters) && data.promoters.length) {
@@ -505,8 +512,14 @@
       const button = document.getElementById("submitButton"); button.disabled = true; button.querySelector("span").textContent = "Submitting…";
       const payload = buildPayload();
       try {
-        if (apiEndpoint) {
-          const response = await fetch(apiEndpoint, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)});
+        if (submitEndpoint) {
+          const response = await fetch(submitEndpoint, {
+            method:"POST",
+            headers:{"Accept":"application/json", "Content-Type":"application/json"},
+            body:JSON.stringify(payload),
+            cache:"no-store",
+            credentials:"same-origin"
+          });
           if (!response.ok) {
             const detail = await response.json().catch(() => ({}));
             throw new Error(detail.error || `Submission failed (${response.status})`);
@@ -529,7 +542,7 @@
 
     restoreDraft(); updateOutboxCount(); loadBootstrap();
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+      window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js?v=3", {updateViaCache:"none"}).then(registration => registration.update()).catch(() => {}));
     }
   </script>
 </body>

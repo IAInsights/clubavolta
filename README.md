@@ -16,6 +16,6 @@ Upload every file in this folder to the root of the same repository. The relativ
 
 ## Secure submissions
 
-The form sends reports to `/api/club-avolta`. The existing deployed Club Avolta site provides that secure route and keeps the Supabase secret outside the browser.
+The form loads promoters from `/api/club-avolta/bootstrap` and sends reports to `/api/club-avolta/submit`. The existing deployed Club Avolta site provides these secure routes and keeps the Supabase secret outside the browser.
 
-GitHub Pages can host the PWA files, but it cannot run the secure API route by itself. If GitHub Pages is used as the live host, a separate secure backend or reverse proxy must provide `/api/club-avolta`; never place a Supabase secret or service-role key in `index.html`.
+GitHub Pages can host the PWA files, but it cannot run the secure API routes by itself. If GitHub Pages is used as the live host, a separate secure backend or reverse proxy must provide both routes; never place a Supabase secret or service-role key in `index.html`.

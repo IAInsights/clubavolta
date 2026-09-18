@@ -1,4 +1,4 @@
-const CACHE_NAME = "club-avolta-field-report-v2";
+const CACHE_NAME = "club-avolta-field-report-v3";
 const APP_SHELL = ["./", "./index.html", "./manifest.webmanifest", "./favicon.svg"];
 
 self.addEventListener("install", event => {
@@ -16,7 +16,7 @@ self.addEventListener("activate", event => {
 
 self.addEventListener("fetch", event => {
   const requestUrl = new URL(event.request.url);
-  if (event.request.method !== "GET" || requestUrl.pathname.includes("/api/")) return;
+  if (event.request.method !== "GET" || requestUrl.pathname.startsWith("/api/")) return;
 
   if (event.request.mode === "navigate") {
     event.respondWith(
