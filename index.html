@@ -10,9 +10,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="manifest" href="./manifest.webmanifest">
-  <!-- Add a secure same-origin API URL here when the database endpoint is ready. -->
-  <meta name="club-avolta-bootstrap-api" content="/api/club-avolta/bootstrap?v=3">
-  <meta name="club-avolta-submit-api" content="/api/club-avolta/submit?v=3">
+  <meta name="supabase-url" content="https://qooytgsjjzvkqaumoqmw.supabase.co">
+  <meta name="supabase-publishable-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvb3l0Z3Nqanp2a3FhdW1vcW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjUzNjM0ODMsImV4cCI6MjA0MDkzOTQ4M30.Oai2A8Qii0aOfD91NFwHsNq3Tgq1yFHwih-GRFnsEC0">
+  <meta name="club-avolta-function" content="https://qooytgsjjzvkqaumoqmw.supabase.co/functions/v1/club-avolta-form-api">
   <title>Club Avolta · Field Report</title>
   <style>
     :root {
@@ -53,14 +53,34 @@
 
     .shell { width: min(860px, calc(100% - 32px)); margin: 0 auto; }
     .form-page { padding: 28px 0 64px; }
+    .auth-page { min-height: 100dvh; display: grid; align-content: center; padding: 28px 0; }
+    .login-card { width: min(440px, 100%); margin: 0 auto; padding: 34px; border: 1px solid rgba(222,219,231,.92); border-radius: 30px; background: var(--paper); box-shadow: var(--shadow); }
+    .avolta-lockup { display: grid; justify-items: center; gap: 12px; margin-bottom: 28px; text-align: center; }
+    .avolta-mark { width: 58px; height: 58px; display: grid; place-items: center; border-radius: 18px; color: white; background: var(--ink); font-size: 27px; font-weight: 800; box-shadow: 0 14px 30px rgba(23,24,59,.18); }
+    .avolta-lockup h1 { margin: 0; font-size: clamp(28px, 6vw, 38px); letter-spacing: -.045em; }
+    .avolta-lockup p { margin: -5px 0 0; color: var(--muted); }
+    .login-form { display: grid; gap: 16px; }
+    .login-form input { width: 100%; min-height: 50px; border: 1px solid #dcd9e5; border-radius: 14px; background: #fbfafc; padding: 11px 13px; }
+    .login-form .button { width: 100%; margin-top: 4px; }
+    .login-help { margin: 2px 0 0; color: var(--muted); text-align: center; font-size: 12px; }
+    .login-error { margin: 0; padding: 11px 13px; border-radius: 12px; color: var(--danger); background: #fff0ee; font-size: 13px; font-weight: 700; }
 
     .form-card { overflow: hidden; width: 100%; border: 1px solid rgba(222, 219, 231, .92); border-radius: 30px; background: var(--paper); box-shadow: var(--shadow); }
     .page-footer { padding: 22px 12px 0; color: var(--muted); text-align: center; font-size: 13px; }
-    .page-footer strong { color: var(--ink); font-weight: 800; }
+    .globe-brand { width: 210px; height: 82px; margin: 0 auto; overflow: hidden; }
+    .globe-brand img { display: block; width: 210px; height: auto; margin-top: -56px; }
     .card-head { padding: 30px 34px 25px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; }
     .card-head h2 { margin: 0 0 5px; font-size: 26px; letter-spacing: -.035em; }
     .card-head p { margin: 0; color: var(--muted); font-size: 14px; }
     .draft-note { white-space: nowrap; color: #7b7890; font-size: 12px; font-weight: 700; }
+    .account-tools { display: flex; align-items: center; gap: 10px; }
+    .account-email { max-width: 210px; overflow: hidden; color: var(--muted); font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .logout-button { min-height: 34px; border: 1px solid var(--line); border-radius: 10px; background: white; padding: 0 11px; cursor: pointer; font-size: 12px; font-weight: 800; }
+    .shift-summary { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)) auto; gap: 10px; align-items: stretch; margin-bottom: 18px; }
+    .summary-chip { padding: 12px; border: 1px solid var(--line); border-radius: 15px; background: #fbfafc; }
+    .summary-chip span { display: block; color: var(--muted); font-size: 11px; font-weight: 700; }
+    .summary-chip strong { display: block; margin-top: 3px; font-size: 14px; }
+    .shift-details .grid > .field:not(.range-card), .shift-details .grid > fieldset { display: none; }
 
     form { display: block; }
     .section { padding: 30px 34px; border-bottom: 1px solid var(--line); }
@@ -153,6 +173,22 @@
     .toast strong { display: block; margin-bottom: 2px; }
     .toast span { color: #d9d8e6; font-size: 13px; }
     .error { margin: 0 34px 18px; padding: 12px 14px; border-radius: 12px; color: var(--danger); background: #fff0ee; font-size: 13px; font-weight: 700; }
+    dialog { width: min(620px, calc(100% - 24px)); max-height: calc(100dvh - 24px); overflow: auto; border: 0; border-radius: 24px; padding: 0; color: var(--ink); background: white; box-shadow: 0 28px 90px rgba(23,24,59,.28); }
+    dialog::backdrop { background: rgba(23,24,59,.55); backdrop-filter: blur(5px); }
+    .dialog-head { padding: 25px 26px 18px; border-bottom: 1px solid var(--line); }
+    .dialog-head h2 { margin: 0 0 5px; font-size: 24px; letter-spacing: -.035em; }
+    .dialog-head p { margin: 0; color: var(--muted); font-size: 14px; }
+    .dialog-body { padding: 24px 26px; }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 18px 26px calc(18px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: #fbfafc; }
+    .setup-form { display: grid; gap: 17px; }
+    .setup-form input[type="text"], .setup-form input[type="date"] { width: 100%; min-height: 48px; border: 1px solid #dcd9e5; border-radius: 14px; background: #fbfafc; padding: 11px 13px; }
+    .review-list { display: grid; gap: 18px; }
+    .review-group { padding-bottom: 17px; border-bottom: 1px solid var(--line); }
+    .review-group:last-child { padding-bottom: 0; border-bottom: 0; }
+    .review-group h3 { margin: 0 0 10px; color: var(--violet); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+    .review-row { display: grid; grid-template-columns: minmax(120px,.8fr) minmax(0,1.3fr); gap: 14px; padding: 5px 0; }
+    .review-row span { color: var(--muted); font-size: 13px; }
+    .review-row strong { overflow-wrap: anywhere; font-size: 14px; }
     [hidden] { display: none !important; }
 
     @media (max-width: 640px) {
@@ -162,6 +198,8 @@
       .card-head, .section { padding: 23px 19px; }
       .card-head { display: block; }
       .draft-note { display: inline-block; margin-top: 9px; }
+      .account-tools { margin-top: 12px; justify-content: space-between; }
+      .shift-summary { grid-template-columns: 1fr 1fr; }
       .grid { grid-template-columns: 1fr; gap: 16px; }
       .field.full { grid-column: auto; }
       .store-grid { grid-template-columns: 1fr; }
@@ -173,19 +211,49 @@
       .save-state { display: none; }
       .button-primary { flex: 1; }
       .error { margin: 0 19px 16px; }
+      .login-card { padding: 26px 20px; border-radius: 24px; }
+      .dialog-head, .dialog-body { padding-left: 19px; padding-right: 19px; }
+      .dialog-actions { padding-left: 19px; padding-right: 19px; }
+      .review-row { grid-template-columns: 1fr; gap: 1px; }
     }
   </style>
 </head>
 <body>
-  <main class="shell form-page">
+  <main class="shell auth-page" id="authPage">
+    <section class="login-card" aria-labelledby="loginTitle">
+      <div class="avolta-lockup">
+        <div class="avolta-mark" aria-hidden="true">A</div>
+        <h1 id="loginTitle">Club Avolta Report</h1>
+        <p>Sign in to record your shift.</p>
+      </div>
+      <form class="login-form" id="loginForm">
+        <div><label for="loginEmail">Email</label><input id="loginEmail" type="email" autocomplete="username" required></div>
+        <div><label for="loginPassword">Password</label><input id="loginPassword" type="password" autocomplete="current-password" required></div>
+        <p class="login-error" id="loginError" role="alert" hidden></p>
+        <button class="button button-primary" id="loginButton" type="submit">Log in</button>
+        <p class="login-help">Access is limited to active Switzerland promoters.</p>
+      </form>
+      <footer class="page-footer" aria-label="Globe Travel Retail">
+        <div class="globe-brand"><img src="./globe-travel-retail.png" alt="Globe Travel Retail"></div>
+      </footer>
+    </section>
+  </main>
+
+  <main class="shell form-page" id="appPage" hidden>
     <article class="form-card">
       <form id="reportForm" novalidate>
         <div class="card-head">
-          <div><h2>Daily activity</h2><p>Complete the report at the end of your shift.</p></div>
-          <span class="draft-note" id="draftNote">Draft autosave on</span>
+          <div><h2>Club Avolta Report</h2><p>Complete the report at the end of your shift.</p></div>
+          <div class="account-tools"><span class="account-email" id="accountEmail"></span><button class="logout-button" id="logoutButton" type="button">Log out</button></div>
         </div>
-        <section class="section">
+        <section class="section shift-details">
           <div class="section-title"><span class="section-number">01</span><div><h3>Shift details</h3><p>When, where and who.</p></div></div>
+          <div class="shift-summary">
+            <div class="summary-chip"><span>Promoter</span><strong id="shiftPromoter">—</strong></div>
+            <div class="summary-chip"><span>Date</span><strong id="shiftDate">—</strong></div>
+            <div class="summary-chip"><span>Store</span><strong id="shiftStore">—</strong></div>
+            <button class="button button-quiet" id="editShiftButton" type="button">Edit</button>
+          </div>
           <div class="grid">
             <div class="field">
               <label class="required" for="activity_date">Activity date</label>
@@ -256,14 +324,35 @@
           <button class="button button-quiet" id="clearButton" type="button">Clear</button>
           <span class="save-state">Required: date, promoter and store</span>
           <button class="button button-primary" id="submitButton" type="submit">
-            <span>Submit report</span>
+            <span>Review &amp; send</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8 5 8 7-8 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
       </form>
     </article>
-    <footer class="page-footer">Made by <strong>Globe Travel Retail</strong></footer>
+    <footer class="page-footer" aria-label="Globe Travel Retail">
+      <div class="globe-brand"><img src="./globe-travel-retail.png" alt="Globe Travel Retail"></div>
+    </footer>
   </main>
+
+  <dialog id="shiftDialog" aria-labelledby="shiftDialogTitle">
+    <form class="setup-form" id="shiftSetupForm" method="dialog">
+      <div class="dialog-head"><h2 id="shiftDialogTitle">Start your report</h2><p>Confirm your shift details before entering results.</p></div>
+      <div class="dialog-body setup-form">
+        <div><label for="setupPromoter">Your name</label><input id="setupPromoter" type="text" readonly></div>
+        <div><label class="required" for="setupDate">Activity date</label><input id="setupDate" type="date" required></div>
+        <fieldset><legend class="required">Store</legend><div class="store-grid" id="setupStoreGrid"></div></fieldset>
+        <p class="login-error" id="setupError" role="alert" hidden></p>
+      </div>
+      <div class="dialog-actions"><button class="button button-primary" type="submit">Continue to report</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="reviewDialog" aria-labelledby="reviewDialogTitle">
+    <div class="dialog-head"><h2 id="reviewDialogTitle">Review your report</h2><p>Check the information below before sending.</p></div>
+    <div class="dialog-body"><div class="review-list" id="reviewContent"></div><p class="login-error" id="reviewError" role="alert" hidden></p></div>
+    <div class="dialog-actions"><button class="button button-quiet" id="backToReportButton" type="button">Go back and edit</button><button class="button button-primary" id="confirmSubmitButton" type="button">Confirm and send</button></div>
+  </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"><strong id="toastTitle"></strong><span id="toastText"></span></div>
 
@@ -291,12 +380,87 @@
     ];
     const DRAFT_KEY = "clubAvoltaDraftV1";
     const OUTBOX_KEY = "clubAvoltaOutboxV1";
+    const AUTH_KEY = "clubAvoltaAuthV1";
+    const SUPABASE_URL = document.querySelector('meta[name="supabase-url"]').content.trim();
+    const PUBLISHABLE_KEY = document.querySelector('meta[name="supabase-publishable-key"]').content.trim();
+    const FUNCTION_URL = document.querySelector('meta[name="club-avolta-function"]').content.trim();
     const form = document.getElementById("reportForm");
     const promoterSearch = document.getElementById("promoter_search");
     const promoterIdInput = document.getElementById("promoter_id");
-    const isLocalPreview = location.protocol === "file:" || ["127.0.0.1","localhost"].includes(location.hostname);
-    const bootstrapEndpoint = isLocalPreview ? "" : new URL(document.querySelector('meta[name="club-avolta-bootstrap-api"]').content.trim(), location.origin).href;
-    const submitEndpoint = isLocalPreview ? "" : new URL(document.querySelector('meta[name="club-avolta-submit-api"]').content.trim(), location.origin).href;
+    const authPage = document.getElementById("authPage");
+    const appPage = document.getElementById("appPage");
+    const loginForm = document.getElementById("loginForm");
+    const shiftDialog = document.getElementById("shiftDialog");
+    const reviewDialog = document.getElementById("reviewDialog");
+    let currentSession = null;
+    let pendingPayload = null;
+
+    function readSession() {
+      try { return JSON.parse(localStorage.getItem(AUTH_KEY) || "null"); } catch { return null; }
+    }
+    function saveSession(session) {
+      currentSession = {
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+        expires_at: session.expires_at || Math.floor(Date.now() / 1000) + Number(session.expires_in || 3600),
+        user: session.user || currentSession?.user || null
+      };
+      localStorage.setItem(AUTH_KEY, JSON.stringify(currentSession));
+      return currentSession;
+    }
+    async function authRequest(path, body) {
+      const response = await fetch(SUPABASE_URL + path, {
+        method:"POST",
+        headers:{"apikey":PUBLISHABLE_KEY, "Content-Type":"application/json"},
+        body:JSON.stringify(body),
+        cache:"no-store"
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error_description || data.msg || data.message || "Unable to sign in.");
+      return data;
+    }
+    async function refreshSession(force = false) {
+      currentSession ||= readSession();
+      if (!currentSession?.refresh_token) throw new Error("Please sign in to continue.");
+      if (!force && currentSession.access_token && Number(currentSession.expires_at || 0) > Math.floor(Date.now()/1000) + 60) return currentSession;
+      return saveSession(await authRequest("/auth/v1/token?grant_type=refresh_token", {refresh_token:currentSession.refresh_token}));
+    }
+    async function authorizedFetch(options = {}, retry = true) {
+      const session = await refreshSession();
+      const headers = new Headers(options.headers || {});
+      headers.set("apikey", PUBLISHABLE_KEY);
+      headers.set("Authorization", "Bearer " + session.access_token);
+      const response = await fetch(FUNCTION_URL, {...options, headers, cache:"no-store", credentials:"omit"});
+      if (response.status === 401 && retry) {
+        await refreshSession(true);
+        return authorizedFetch(options, false);
+      }
+      return response;
+    }
+    function showLogin(message = "") {
+      currentSession = null;
+      localStorage.removeItem(AUTH_KEY);
+      if (shiftDialog.open) shiftDialog.close();
+      if (reviewDialog.open) reviewDialog.close();
+      appPage.hidden = true;
+      authPage.hidden = false;
+      const error = document.getElementById("loginError");
+      error.textContent = message; error.hidden = !message;
+      document.getElementById("loginPassword").value = "";
+    }
+    async function activateApp() {
+      authPage.hidden = true;
+      appPage.hidden = false;
+      document.getElementById("accountEmail").textContent = currentSession?.user?.email || "";
+      try {
+        await loadBootstrap();
+        restoreDraft();
+        populateShiftDialog();
+        if (!shiftDialog.open) shiftDialog.showModal();
+      } catch (error) {
+        showLogin(error.message || "Please sign in again.");
+      }
+    }
 
     function todayLocal() {
       const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
@@ -309,6 +473,10 @@
       const toast = document.getElementById("toast"); toast.classList.add("show");
       clearTimeout(showToast.timer); showToast.timer = setTimeout(() => toast.classList.remove("show"), 4200);
     }
+    function setDraftNote(text) {
+      const note = document.getElementById("draftNote");
+      if (note) note.textContent = text;
+    }
     function updateOutboxCount() {
       const count = JSON.parse(localStorage.getItem(OUTBOX_KEY) || "[]").length;
       const indicator = document.getElementById("outboxCount");
@@ -317,6 +485,9 @@
 
     document.getElementById("storeGrid").innerHTML = STORES.map((s,i) => `
       <div class="store-option"><input type="radio" id="store_${esc(s.code)}" name="store_code" value="${esc(s.code)}" ${i===0?'required':''}><label for="store_${esc(s.code)}"><strong>${esc(s.label)}</strong><small>${esc(s.detail)}</small></label></div>
+    `).join("");
+    document.getElementById("setupStoreGrid").innerHTML = STORES.map((s,i) => `
+      <div class="store-option"><input type="radio" id="setup_store_${esc(s.code)}" name="setup_store_code" value="${esc(s.code)}" ${i===0?'required':''}><label for="setup_store_${esc(s.code)}"><strong>${esc(s.label)}</strong><small>${esc(s.detail)}</small></label></div>
     `).join("");
     document.getElementById("ageGroups").innerHTML = AGE_GROUPS.map((age,i) => `
       <span class="choice"><input type="checkbox" id="age_${i}" name="age_groups" value="${esc(age)}"><label for="age_${i}">${esc(age)}</label></span>
@@ -377,23 +548,16 @@
     syncSliders();
 
     async function loadBootstrap() {
-      if (!bootstrapEndpoint) return;
-      try {
-        const response = await fetch(bootstrapEndpoint, {
-          method:"GET",
-          headers:{"Accept":"application/json"},
-          cache:"no-store",
-          credentials:"same-origin"
-        });
-        if (!response.ok) throw new Error(`Promoter list unavailable (${response.status})`);
-        const data = await response.json();
-        if (Array.isArray(data.promoters) && data.promoters.length) {
-          promoterOptions = data.promoters.map(p => ({id:Number(p.id), name:String(p.name)}));
-          renderPromoters();
-        }
-      } catch (error) {
-        showToast("Using the saved promoter list", "The live Switzerland list could not be loaded.");
-      }
+      const response = await authorizedFetch({method:"GET", headers:{"Accept":"application/json"}});
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || `Unable to load your promoter profile (${response.status})`);
+      if (!Array.isArray(data.promoters) || !data.promoters.length) throw new Error("This account is not linked to an active Switzerland promoter.");
+      promoterOptions = data.promoters.map(p => ({id:Number(p.id), name:String(p.name)}));
+      renderPromoters();
+      const promoter = promoterOptions[0];
+      promoterSearch.value = promoter.name;
+      promoterIdInput.value = String(promoter.id);
+      document.getElementById("setupPromoter").value = promoter.name;
     }
 
     function renderMulti(root) {
@@ -456,6 +620,83 @@
       METRICS.forEach(([key]) => payload[key] = Math.max(0, Number(form.elements[key].value || 0)));
       return payload;
     }
+    function selectedStore() {
+      return STORES.find(store => store.code === form.store_code.value);
+    }
+    function syncShiftSummary() {
+      const store = selectedStore();
+      document.getElementById("shiftPromoter").textContent = promoterSearch.value || "—";
+      document.getElementById("shiftDate").textContent = form.activity_date.value || "—";
+      document.getElementById("shiftStore").textContent = store ? `${store.label} · ${store.detail}` : "—";
+    }
+    function populateShiftDialog() {
+      document.getElementById("setupPromoter").value = promoterOptions[0]?.name || promoterSearch.value || "";
+      document.getElementById("setupDate").value = form.activity_date.value || todayLocal();
+      const currentStore = form.store_code.value || STORES[0].code;
+      const storeInput = document.querySelector(`[name="setup_store_code"][value="${CSS.escape(currentStore)}"]`);
+      if (storeInput) storeInput.checked = true;
+      const setupError = document.getElementById("setupError"); setupError.hidden = true; setupError.textContent = "";
+    }
+    document.getElementById("shiftSetupForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const setupForm = event.currentTarget;
+      const setupError = document.getElementById("setupError");
+      const selectedCode = setupForm.elements.setup_store_code.value;
+      if (!setupForm.checkValidity() || !selectedCode || !promoterOptions[0]) {
+        setupError.textContent = "Choose the date and store before continuing.";
+        setupError.hidden = false;
+        setupForm.reportValidity();
+        return;
+      }
+      promoterSearch.value = promoterOptions[0].name;
+      promoterIdInput.value = String(promoterOptions[0].id);
+      form.activity_date.value = document.getElementById("setupDate").value;
+      const reportStore = form.querySelector(`[name="store_code"][value="${CSS.escape(selectedCode)}"]`);
+      if (reportStore) reportStore.checked = true;
+      syncPromoter(); syncShiftSummary(); scheduleSave();
+      shiftDialog.close();
+    });
+    shiftDialog.addEventListener("cancel", event => event.preventDefault());
+    document.getElementById("editShiftButton").addEventListener("click", () => {
+      populateShiftDialog();
+      shiftDialog.showModal();
+    });
+
+    function reviewRow(label, value) {
+      const display = Array.isArray(value) ? (value.length ? value.join(", ") : "None") : (String(value ?? "").trim() || "None");
+      return `<div class="review-row"><span>${esc(label)}</span><strong>${esc(display)}</strong></div>`;
+    }
+    function reviewGroup(title, rows) {
+      return `<section class="review-group"><h3>${esc(title)}</h3>${rows.join("")}</section>`;
+    }
+    function renderReview(payload) {
+      const store = STORES.find(item => item.code === payload.store_code);
+      const profile = [
+        reviewRow("Traffic density", payload.traffic_density + "%"),
+        reviewRow("Gender average", payload.male_customers + "% female"),
+        reviewRow("Age groups", payload.age_groups),
+        reviewRow("Destinations", payload.destinations),
+        reviewRow("Nationalities", payload.nationalities)
+      ];
+      const results = METRICS.map(([key,label]) => reviewRow(label, payload[key]));
+      const notes = [
+        reviewRow("Registration denials", payload.reasons_denial),
+        reviewRow("Registration reasons", payload.reasons_registration),
+        reviewRow("App comments", payload.comments_about_app),
+        reviewRow("Other issues", payload.other_issues)
+      ];
+      document.getElementById("reviewContent").innerHTML = [
+        reviewGroup("Shift", [
+          reviewRow("Promoter", payload.source_promoter),
+          reviewRow("Date", payload.activity_date),
+          reviewRow("Store", store ? `${store.label} · ${store.detail}` : payload.store_code)
+        ]),
+        reviewGroup("Customer profile", profile),
+        reviewGroup("Results", results),
+        reviewGroup("Notes", notes)
+      ].join("");
+      const error = document.getElementById("reviewError"); error.hidden = true; error.textContent = "";
+    }
     function collectDraft() {
       const data = {};
       [...form.elements].forEach(el => {
@@ -477,29 +718,36 @@
       });
       document.querySelectorAll(".multi").forEach(updateMulti);
       syncPromoter(); syncResultRules(); syncSliders();
-      document.getElementById("draftNote").textContent = "Draft restored";
+      setDraftNote("Draft restored");
     }
     function scheduleSave() {
       clearTimeout(scheduleSave.timer);
       scheduleSave.timer = setTimeout(() => {
         localStorage.setItem(DRAFT_KEY, JSON.stringify(collectDraft()));
-        document.getElementById("draftNote").textContent = "Draft saved";
+        setDraftNote("Draft saved");
       }, 250);
     }
     form.addEventListener("input", scheduleSave);
     form.addEventListener("change", scheduleSave);
 
     function clearForm(confirmFirst = true) {
-      if (confirmFirst && !confirm("Clear this report and start again?")) return;
+      if (confirmFirst && !confirm("Clear this report and start again?")) return false;
       form.reset(); form.activity_date.value = todayLocal();
       METRICS.forEach(([key]) => form.elements[key].value = 0);
       document.querySelectorAll(".multi").forEach(updateMulti);
       syncPromoter(); syncResultRules(); syncSliders();
       localStorage.removeItem(DRAFT_KEY);
-      document.getElementById("draftNote").textContent = "Draft autosave on";
+      setDraftNote("Draft autosave on");
       document.getElementById("formError").hidden = true;
+      syncShiftSummary();
+      return true;
     }
-    document.getElementById("clearButton").addEventListener("click", () => clearForm(true));
+    document.getElementById("clearButton").addEventListener("click", () => {
+      if (clearForm(true)) {
+        populateShiftDialog();
+        shiftDialog.showModal();
+      }
+    });
 
     form.addEventListener("submit", async e => {
       e.preventDefault();
@@ -509,40 +757,89 @@
         error.textContent = "Please complete the date, promoter and store before submitting."; error.hidden = false;
         form.reportValidity(); return;
       }
-      const button = document.getElementById("submitButton"); button.disabled = true; button.querySelector("span").textContent = "Submitting…";
-      const payload = buildPayload();
+      pendingPayload = buildPayload();
+      renderReview(pendingPayload);
+      reviewDialog.showModal();
+    });
+
+    document.getElementById("backToReportButton").addEventListener("click", () => reviewDialog.close());
+    document.getElementById("confirmSubmitButton").addEventListener("click", async event => {
+      if (!pendingPayload) return;
+      const button = event.currentTarget;
+      const error = document.getElementById("reviewError");
+      button.disabled = true; button.textContent = "Sending…"; error.hidden = true;
       try {
-        if (submitEndpoint) {
-          const response = await fetch(submitEndpoint, {
-            method:"POST",
-            headers:{"Accept":"application/json", "Content-Type":"application/json"},
-            body:JSON.stringify(payload),
-            cache:"no-store",
-            credentials:"same-origin"
-          });
-          if (!response.ok) {
-            const detail = await response.json().catch(() => ({}));
-            throw new Error(detail.error || `Submission failed (${response.status})`);
-          }
-          showToast("Report submitted", "The activity has been saved to ClubAvolta.");
-        } else {
-          const outbox = JSON.parse(localStorage.getItem(OUTBOX_KEY) || "[]");
-          outbox.push({...payload, saved_at:new Date().toISOString()});
-          localStorage.setItem(OUTBOX_KEY, JSON.stringify(outbox));
-          showToast("Report saved on this device", "Connect a secure API endpoint to send saved reports to ClubAvolta.");
-          updateOutboxCount();
-        }
-        clearForm(false); window.scrollTo({top:0, behavior:"smooth"});
+        const response = await authorizedFetch({
+          method:"POST",
+          headers:{"Accept":"application/json", "Content-Type":"application/json"},
+          body:JSON.stringify(pendingPayload)
+        });
+        const detail = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(detail.error || `Submission failed (${response.status})`);
+        reviewDialog.close();
+        pendingPayload = null;
+        showToast("Report submitted", "The activity has been saved to ClubAvolta.");
+        clearForm(false);
+        promoterSearch.value = promoterOptions[0]?.name || "";
+        promoterIdInput.value = promoterOptions[0] ? String(promoterOptions[0].id) : "";
+        window.scrollTo({top:0, behavior:"smooth"});
+        populateShiftDialog();
+        shiftDialog.showModal();
       } catch (err) {
-        error.textContent = err.message || "The report could not be submitted. Your draft is still saved."; error.hidden = false;
+        error.textContent = err.message || "The report could not be submitted. Your draft is still saved.";
+        error.hidden = false;
+        if (/session|sign in/i.test(error.textContent)) showLogin(error.textContent);
       } finally {
-        button.disabled = false; button.querySelector("span").textContent = "Submit report";
+        button.disabled = false; button.textContent = "Confirm and send";
       }
     });
 
-    restoreDraft(); updateOutboxCount(); loadBootstrap();
+    loginForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      const button = document.getElementById("loginButton");
+      const error = document.getElementById("loginError");
+      button.disabled = true; button.textContent = "Signing in…"; error.hidden = true;
+      try {
+        const session = await authRequest("/auth/v1/token?grant_type=password", {
+          email:document.getElementById("loginEmail").value.trim(),
+          password:document.getElementById("loginPassword").value
+        });
+        saveSession(session);
+        await activateApp();
+      } catch (err) {
+        error.textContent = err.message || "Unable to sign in.";
+        error.hidden = false;
+      } finally {
+        button.disabled = false; button.textContent = "Log in";
+      }
+    });
+    document.getElementById("logoutButton").addEventListener("click", async () => {
+      try {
+        const session = await refreshSession();
+        await fetch(SUPABASE_URL + "/auth/v1/logout", {
+          method:"POST",
+          headers:{"apikey":PUBLISHABLE_KEY, "Authorization":"Bearer " + session.access_token}
+        });
+      } catch {}
+      if (shiftDialog.open) shiftDialog.close();
+      if (reviewDialog.open) reviewDialog.close();
+      showLogin();
+    });
+
+    async function initializeAuth() {
+      currentSession = readSession();
+      updateOutboxCount();
+      if (!currentSession?.refresh_token) { showLogin(); return; }
+      try {
+        await refreshSession();
+        await activateApp();
+      } catch {
+        showLogin("Please sign in to continue.");
+      }
+    }
+    initializeAuth();
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js?v=3", {updateViaCache:"none"}).then(registration => registration.update()).catch(() => {}));
+      window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js?v=5", {updateViaCache:"none"}).then(registration => registration.update()).catch(() => {}));
     }
   </script>
 </body>

@@ -1,21 +1,24 @@
-# Club Avolta Field Report
+# Club Avolta Report
 
-This folder contains the GitHub-ready Progressive Web App (PWA) front end.
+This folder is the complete GitHub Pages package for the Club Avolta Progressive Web App (PWA).
 
-## Files
+## Publish on GitHub Pages
 
-- `index.html` — responsive field-report form
-- `favicon.svg` — Club Avolta-inspired app icon
-- `manifest.webmanifest` — installable-app metadata
-- `sw.js` — offline application-shell cache
-- `.nojekyll` — keeps GitHub Pages from modifying the files
+1. Upload every file in this folder to the root of the same GitHub repository.
+2. In GitHub, open **Settings → Pages**.
+3. Select **Deploy from a branch**, choose the branch containing these files, select `/ (root)`, and save.
+4. Open the GitHub Pages URL and log in with an authorized Supabase account.
 
-## Upload to GitHub
+Keep the filenames and folder structure unchanged. The Globe Travel Retail logo, app icon, manifest, and offline service worker are all required.
 
-Upload every file in this folder to the root of the same repository. The relative paths must stay unchanged.
+## Authentication and submissions
 
-## Secure submissions
+- The app uses Supabase email/password authentication.
+- There is no public sign-up screen.
+- A user may access the report only when the account email matches an active Switzerland promoter in `GI_promoters`.
+- Reports are submitted through the protected Supabase Edge Function and saved into the existing `ClubAvolta` table structure.
+- The publishable browser key included in `index.html` is intended for client-side use. No service-role key or server secret is included.
 
-The form loads promoters from `/api/club-avolta/bootstrap` and sends reports to `/api/club-avolta/submit`. The existing deployed Club Avolta site provides these secure routes and keeps the Supabase secret outside the browser.
+## First use
 
-GitHub Pages can host the PWA files, but it cannot run the secure API routes by itself. If GitHub Pages is used as the live host, a separate secure backend or reverse proxy must provide both routes; never place a Supabase secret or service-role key in `index.html`.
+After login, the app asks for the promoter name, activity date, and store. The promoter name comes from the authenticated account. Before submission, the app displays a recap and asks for final confirmation.
