@@ -55,7 +55,6 @@
     .auth-page { min-height: 100dvh; display: grid; align-content: center; padding: 28px 0; }
     .login-card { width: min(440px, 100%); margin: 0 auto; padding: 34px; border: 1px solid rgba(222,219,231,.92); border-radius: 30px; background: var(--paper); box-shadow: var(--shadow); }
     .avolta-lockup { display: grid; justify-items: center; gap: 12px; margin-bottom: 28px; text-align: center; }
-    .avolta-mark { width: 58px; height: 58px; display: grid; place-items: center; border-radius: 18px; color: white; background: var(--ink); font-size: 27px; font-weight: 800; box-shadow: 0 14px 30px rgba(23,24,59,.18); }
     .avolta-lockup h1 { margin: 0; font-size: clamp(28px, 6vw, 38px); letter-spacing: -.045em; }
     .avolta-lockup p { margin: -5px 0 0; color: var(--muted); }
     .login-form { display: grid; gap: 16px; }
@@ -181,13 +180,20 @@
     .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 18px 26px calc(18px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: #fbfafc; }
     .setup-form { display: grid; gap: 17px; }
     .setup-form input[type="text"], .setup-form input[type="date"] { width: 100%; min-height: 48px; border: 1px solid #dcd9e5; border-radius: 14px; background: #fbfafc; padding: 11px 13px; }
-    .review-list { display: grid; gap: 18px; }
-    .review-group { padding-bottom: 17px; border-bottom: 1px solid var(--line); }
+    .review-dialog { width: min(940px, calc(100% - 24px)); overflow: hidden; }
+    .review-dialog .dialog-head { padding: 18px 24px 14px; }
+    .review-dialog .dialog-body { max-height: calc(100dvh - 168px); overflow: auto; padding: 16px 24px; }
+    .review-dialog .dialog-actions { padding: 13px 24px calc(13px + env(safe-area-inset-bottom)); }
+    .review-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
+    .review-group { min-width: 0; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
     .review-group:last-child { padding-bottom: 0; border-bottom: 0; }
-    .review-group h3 { margin: 0 0 10px; color: var(--violet); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
-    .review-row { display: grid; grid-template-columns: minmax(120px,.8fr) minmax(0,1.3fr); gap: 14px; padding: 5px 0; }
+    .review-group:first-child { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 18px; }
+    .review-group:first-child h3 { grid-column: 1 / -1; }
+    .review-group:first-child .review-row { grid-template-columns: 1fr; gap: 0; }
+    .review-group h3 { margin: 0 0 7px; color: var(--violet); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+    .review-row { display: grid; grid-template-columns: minmax(104px,.85fr) minmax(0,1.15fr); gap: 8px; padding: 3px 0; }
     .review-row span { color: var(--muted); font-size: 13px; }
-    .review-row strong { overflow-wrap: anywhere; font-size: 14px; }
+    .review-row strong { overflow-wrap: anywhere; font-size: 13px; }
     .sent-symbol { width: 58px; height: 58px; margin: 0 auto 16px; display: grid; place-items: center; border-radius: 50%; color: white; background: #228b66; font-size: 28px; font-weight: 900; }
     .sent-dialog { text-align: center; }
     .sent-dialog .dialog-actions { justify-content: center; }
@@ -216,15 +222,16 @@
       .login-card { padding: 26px 20px; border-radius: 24px; }
       .dialog-head, .dialog-body { padding-left: 19px; padding-right: 19px; }
       .dialog-actions { padding-left: 19px; padding-right: 19px; }
+      .review-list { grid-template-columns: 1fr; }
+      .review-group:first-child { grid-column: auto; grid-template-columns: 1fr; }
       .review-row { grid-template-columns: 1fr; gap: 1px; }
     }
   </style>
 </head>
 <body>
-  <main class="shell auth-page" id="authPage">
+  <main class="shell auth-page" id="authPage" hidden>
     <section class="login-card" aria-labelledby="loginTitle">
       <div class="avolta-lockup">
-        <div class="avolta-mark" aria-hidden="true">A</div>
         <h1 id="loginTitle">Club Avolta Report</h1>
         <p>Sign in to record your shift.</p>
       </div>
@@ -350,7 +357,7 @@
     </form>
   </dialog>
 
-  <dialog id="reviewDialog" aria-labelledby="reviewDialogTitle">
+  <dialog class="review-dialog" id="reviewDialog" aria-labelledby="reviewDialogTitle">
     <div class="dialog-head"><h2 id="reviewDialogTitle">Review your report</h2><p>Check the information below before sending.</p></div>
     <div class="dialog-body"><div class="review-list" id="reviewContent"></div><p class="login-error" id="reviewError" role="alert" hidden></p></div>
     <div class="dialog-actions"><button class="button button-quiet" id="backToReportButton" type="button">Go back and edit</button><button class="button button-primary" id="confirmSubmitButton" type="button">Confirm and send</button></div>
@@ -408,7 +415,24 @@
     let pendingPayload = null;
 
     function readSession() {
-      try { return JSON.parse(localStorage.getItem(AUTH_KEY) || "null"); } catch { return null; }
+      for (const storage of [localStorage, sessionStorage]) {
+        try {
+          const session = JSON.parse(storage.getItem(AUTH_KEY) || "null");
+          if (session?.access_token || session?.refresh_token) return session;
+        } catch {}
+      }
+      return null;
+    }
+    function storeSession(session) {
+      const serialized = JSON.stringify(session);
+      for (const storage of [localStorage, sessionStorage]) {
+        try { storage.setItem(AUTH_KEY, serialized); } catch {}
+      }
+    }
+    function removeStoredSession() {
+      for (const storage of [localStorage, sessionStorage]) {
+        try { storage.removeItem(AUTH_KEY); } catch {}
+      }
     }
     function saveSession(session) {
       currentSession = {
@@ -417,7 +441,7 @@
         expires_at: session.expires_at || Math.floor(Date.now() / 1000) + Number(session.expires_in || 3600),
         user: session.user || currentSession?.user || null
       };
-      localStorage.setItem(AUTH_KEY, JSON.stringify(currentSession));
+      storeSession(currentSession);
       return currentSession;
     }
     async function authRequest(path, body) {
@@ -428,7 +452,11 @@
         cache:"no-store"
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error_description || data.msg || data.message || "Unable to sign in.");
+      if (!response.ok) {
+        const error = new Error(data.error_description || data.msg || data.message || "Unable to sign in.");
+        error.status = response.status;
+        throw error;
+      }
       return data;
     }
     async function refreshSession(force = false) {
@@ -451,7 +479,7 @@
     }
     function showLogin(message = "") {
       currentSession = null;
-      localStorage.removeItem(AUTH_KEY);
+      removeStoredSession();
       if (shiftDialog.open) shiftDialog.close();
       if (reviewDialog.open) reviewDialog.close();
       if (sentDialog.open) sentDialog.close();
@@ -822,7 +850,7 @@
       } catch (err) {
         error.textContent = err.message || "The report could not be submitted. Your draft is still saved.";
         error.hidden = false;
-        if (/session|sign in/i.test(error.textContent)) showLogin(error.textContent);
+        if ([400,401].includes(Number(err.status)) || /session|sign in|refresh token/i.test(error.textContent)) showLogin("Your session has expired. Please sign in again.");
       } finally {
         button.disabled = false; button.textContent = "Confirm and send";
       }
@@ -876,13 +904,8 @@
     async function initializeAuth() {
       currentSession = readSession();
       updateOutboxCount();
-      if (!currentSession?.refresh_token) { showLogin(); return; }
-      try {
-        await refreshSession();
-        await activateApp();
-      } catch {
-        showLogin("Please sign in to continue.");
-      }
+      if (!currentSession?.access_token && !currentSession?.refresh_token) { showLogin(); return; }
+      await activateApp();
     }
     initializeAuth();
   </script>
