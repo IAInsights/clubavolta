@@ -15,7 +15,7 @@ Keep the filenames and folder structure unchanged. The Globe Travel Retail logo,
 
 - The app uses Supabase email/password authentication.
 - There is no public sign-up screen.
-- A user may access the report only when the account email matches an active Switzerland promoter in `GI_promoters`.
+- A user may access the report only when the account email matches an active Switzerland promoter in `promoters_master_app`.
 - Reports are submitted through the protected Supabase Edge Function and saved into the existing `ClubAvolta` table structure.
 - The publishable browser key included in `index.html` is intended for client-side use. No service-role key or server secret is included.
 
