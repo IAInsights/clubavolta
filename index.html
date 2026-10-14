@@ -69,8 +69,12 @@
     .form-card { overflow: hidden; width: 100%; border: 1px solid rgba(222, 219, 231, .92); border-radius: 30px; background: var(--paper); box-shadow: var(--shadow); }
     .page-footer { margin-top: 16px; padding: 18px 12px 14px; border: 1px solid rgba(222,219,231,.92); border-radius: 22px; color: var(--muted); background: white; text-align: center; font-size: 13px; }
     .login-card .page-footer { margin: 16px -12px -12px; border: 0; border-radius: 0 0 22px 22px; }
-    .globe-brand { width: 210px; height: 60px; margin: 0 auto; overflow: hidden; }
-    .globe-brand img { display: block; width: 210px; height: auto; margin-top: -56px; }
+    .globe-brand { width: 230px; min-height: 86px; display: grid; justify-items: center; align-content: center; margin: 0 auto; }
+    .globe-brand img { display: none; }
+    .globe-wordmark { display: flex; align-items: center; justify-content: center; color: #242225; font-size: 43px; font-weight: 950; line-height: .86; letter-spacing: -.075em; }
+    .globe-dot { width: 39px; height: 39px; margin: 0 4px 0 6px; border-radius: 50%; background: #bd2d64; }
+    .globe-tagline { margin-top: 2px; color: #bd2d64; font-size: 23px; font-weight: 500; line-height: 1; letter-spacing: -.075em; }
+    .app-version { display: block; margin-top: 8px; color: #8b8999; font-size: 10px; font-weight: 700; line-height: 1; }
     .card-head { padding: 30px 34px 25px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; }
     .card-head h2 { margin: 0 0 5px; font-size: 26px; letter-spacing: -.035em; }
     .card-head p { margin: 0; color: var(--muted); font-size: 14px; }
@@ -199,8 +203,11 @@
     .dialog-close:hover { color: white; border-color: var(--ink); background: var(--ink); }
     .dialog-body { padding: 24px 26px; }
     .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 18px 26px calc(18px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: #fbfafc; }
-    .setup-form { display: grid; gap: 17px; }
-    .setup-form input[type="text"], .setup-form input[type="date"] { width: 100%; min-height: 48px; border: 1px solid #dcd9e5; border-radius: 14px; background: #fbfafc; padding: 11px 13px; }
+    .setup-form { display: grid; gap: 17px; min-width: 0; }
+    .setup-form > *, .setup-form .dialog-body > * { min-width: 0; }
+    .setup-form input[type="text"], .setup-form input[type="date"] { display: block; width: 100%; min-width: 0; max-width: 100%; min-height: 48px; box-sizing: border-box; border: 1px solid #dcd9e5; border-radius: 14px; background: #fbfafc; padding: 11px 13px; font-size: 16px; }
+    .setup-form input[type="date"] { -webkit-appearance: none; appearance: none; text-align: left; }
+    .setup-form input[type="date"]::-webkit-date-and-time-value { width: 100%; min-width: 0; margin: 0; text-align: left; }
     .review-dialog { width: min(940px, calc(100% - 24px)); overflow: hidden; }
     .review-dialog .dialog-head { padding: 18px 24px 14px; }
     .review-dialog .dialog-body { max-height: calc(100dvh - 168px); overflow: auto; padding: 16px 24px; }
@@ -242,8 +249,10 @@
       .button-primary { flex: 1; }
       .error { margin: 0 19px 16px; }
       .login-card { padding: 26px 20px; border-radius: 24px; }
+      dialog { width: calc(100vw - 20px); max-width: calc(100vw - 20px); }
       .dialog-head, .dialog-body { padding-left: 19px; padding-right: 19px; }
       .dialog-actions { padding-left: 19px; padding-right: 19px; }
+      .setup-form input[type="date"] { width: 100% !important; min-width: 0 !important; max-width: 100% !important; }
       .review-list { grid-template-columns: 1fr; }
       .review-group:first-child { grid-column: auto; grid-template-columns: 1fr; }
       .review-row { grid-template-columns: 1fr; gap: 1px; }
@@ -410,6 +419,20 @@
   <div class="toast" id="toast" role="status" aria-live="polite"><strong id="toastTitle"></strong><span id="toastText"></span></div>
 
   <script>
+    const APP_VERSION = "1.10.26";
+    document.querySelectorAll(".globe-brand").forEach(brand => {
+      brand.textContent = "";
+      brand.setAttribute("aria-label", "Globe Travel Retail");
+      const wordmark = document.createElement("div");
+      wordmark.className = "globe-wordmark";
+      const left = document.createElement("span"); left.textContent = "GL";
+      const dot = document.createElement("span"); dot.className = "globe-dot"; dot.setAttribute("aria-hidden", "true");
+      const right = document.createElement("span"); right.textContent = "BE";
+      wordmark.append(left, dot, right);
+      const tagline = document.createElement("div"); tagline.className = "globe-tagline"; tagline.textContent = "TRAVEL RETAIL";
+      const version = document.createElement("small"); version.className = "app-version"; version.textContent = "Version " + APP_VERSION;
+      brand.append(wordmark, tagline, version);
+    });
     const STORES = [
       { code: "BSL", id: 48, label: "Basel" },
       { code: "ZRHL1", id: 32465, label: "Zurich L1" },
