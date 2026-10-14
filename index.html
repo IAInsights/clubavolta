@@ -552,6 +552,7 @@
       lastActivityAt = Date.now();
       scheduleInactivityCheck();
       document.getElementById("accountEmail").textContent = currentSession?.user?.email || "";
+      document.getElementById("accountEmail").textContent = currentSession?.user?.user_metadata?.display_name || "Reporting Globe";
       restoreDraft();
       try {
         await loadBootstrap();
